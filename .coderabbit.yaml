@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://storage.googleapis.com/coderabbit_public_assets/schema.v2.json
+language: "en-US"
+
+reviews:
+  profile: "assertive"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  auto_review:
+    enabled: true
+    drafts: false
+  path_filters:
+    - "!.sqlc-cache/**"
+    - "!dist/**"
+  path_instructions:
+    - path: "hatch_build.py"
+      instructions: |
+        This build hook is the supply-chain-critical core of the project: it
+        downloads official sqlc release binaries and packs them into wheels.
+        Flag anything that weakens sha256 verification, permits unverified
+        downloads by default, changes the download source away from official
+        sqlc-dev/sqlc GitHub releases, or could produce incorrect wheel
+        platform tags (manylinux/musllinux/macosx/win).
+    - path: "checksums.json"
+      instructions: |
+        Every hash must correspond to an official sqlc GitHub release asset.
+        Version keys must stay in sync with the package version in
+        pyproject.toml (ignoring any .postN suffix). Entries should only ever
+        be added by scripts/bump_sqlc.py, not edited by hand.
+    - path: "src/sqlc_bin/**"
+      instructions: |
+        The launcher must behave exactly like invoking sqlc directly: preserve
+        argv, stdio, exit codes, and signal semantics (os.execv on POSIX,
+        subprocess on Windows). Flag anything that adds overhead, buffers
+        output, or otherwise alters behavior between the user and the binary.
+        It must stay stdlib-only with zero runtime dependencies.
+    - path: ".github/workflows/**"
+      instructions: |
+        Workflows must use uv for all Python tooling (never pip, build, twine,
+        or the hatch CLI directly) and publish via PyPI trusted publishing
+        (OIDC) — flag any introduction of long-lived tokens or secrets.
+    - path: "scripts/**"
+      instructions: |
+        Maintenance scripts must be stdlib-only so they run via
+        `uv run --no-project` without an environment.
+
+chat:
+  auto_reply: true
