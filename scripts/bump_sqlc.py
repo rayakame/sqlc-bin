@@ -29,7 +29,7 @@ ASSETS = [
 
 
 def main() -> int:
-    with urllib.request.urlopen(API_LATEST) as resp:
+    with urllib.request.urlopen(API_LATEST, timeout=60) as resp:
         latest = json.load(resp)["tag_name"].lstrip("v")
 
     pyproject = ROOT / "pyproject.toml"
@@ -47,7 +47,8 @@ def main() -> int:
     for template in ASSETS:
         asset = template.format(version=latest)
         print(f"hashing {asset} ...")
-        with urllib.request.urlopen(DOWNLOAD_URL.format(version=latest, asset=asset)) as resp:
+        url = DOWNLOAD_URL.format(version=latest, asset=asset)
+        with urllib.request.urlopen(url, timeout=60) as resp:
             data = resp.read()
         (cache / asset).write_bytes(data)
         entry[asset] = hashlib.sha256(data).hexdigest()

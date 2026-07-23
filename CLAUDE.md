@@ -30,5 +30,5 @@ Full verification loop: build the wheel, `uv pip install` it into a fresh venv, 
 
 ## Releasing
 
-1. Merge the bump PR (or run `scripts/bump_sqlc.py` manually).
+1. Merge the bump PR (or run `uv run --no-project scripts/bump_sqlc.py` manually).
 2. Tag `v<version>` and push the tag — `release.yml` builds, smoke-tests all six platforms, and publishes to PyPI.

@@ -17,6 +17,7 @@ import hashlib
 import json
 import os
 import platform
+import shutil
 import tarfile
 import urllib.request
 import zipfile
@@ -72,9 +73,12 @@ class CustomBuildHook(BuildHookInterface):
         archive = cache / asset
         if not archive.exists():
             cache.mkdir(exist_ok=True)
-            urllib.request.urlretrieve(
-                DOWNLOAD_URL.format(version=sqlc_version, asset=asset), archive
-            )
+            partial = archive.with_name(archive.name + ".part")
+            with urllib.request.urlopen(
+                DOWNLOAD_URL.format(version=sqlc_version, asset=asset), timeout=60
+            ) as resp, open(partial, "wb") as f:
+                shutil.copyfileobj(resp, f)
+            partial.replace(archive)
         self._verify(archive, sqlc_version, asset)
 
         binary = cache / target / binary_name
