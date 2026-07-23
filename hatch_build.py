@@ -91,11 +91,9 @@ class CustomBuildHook(BuildHookInterface):
         checksums = json.loads((Path(self.root) / "checksums.json").read_text())
         expected = checksums.get(sqlc_version, {}).get(asset)
         if expected is None:
-            if os.environ.get("SQLC_BIN_ALLOW_UNVERIFIED") == "1":
-                return
             raise RuntimeError(
                 f"no pinned sha256 for {asset} in checksums.json; "
-                "run scripts/bump_sqlc.py to pin it, or set SQLC_BIN_ALLOW_UNVERIFIED=1"
+                "run scripts/bump_sqlc.py to pin it"
             )
         digest = hashlib.sha256(archive.read_bytes()).hexdigest()
         if digest != expected:

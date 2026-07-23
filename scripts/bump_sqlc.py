@@ -41,12 +41,16 @@ def main() -> int:
 
     checksums_path = ROOT / "checksums.json"
     checksums = json.loads(checksums_path.read_text())
+    cache = ROOT / ".sqlc-cache"
+    cache.mkdir(exist_ok=True)
     entry = {}
     for template in ASSETS:
         asset = template.format(version=latest)
         print(f"hashing {asset} ...")
         with urllib.request.urlopen(DOWNLOAD_URL.format(version=latest, asset=asset)) as resp:
-            entry[asset] = hashlib.sha256(resp.read()).hexdigest()
+            data = resp.read()
+        (cache / asset).write_bytes(data)
+        entry[asset] = hashlib.sha256(data).hexdigest()
     checksums[latest] = entry
     checksums_path.write_text(json.dumps(checksums, indent=2, sort_keys=True) + "\n")
 

@@ -66,7 +66,7 @@ uv sync                                          # set up the dev environment
 uv build --wheel                                 # build a wheel for your platform
 SQLC_BIN_TARGET=windows_arm64 uv build --wheel   # cross-build for another target
 uv run --with dist/*.whl pytest                  # tests run against an installed wheel
-python scripts/bump_sqlc.py                      # update to the latest sqlc release
+uv run --no-project scripts/bump_sqlc.py         # update to the latest sqlc release
 ```
 
 Releases are built and published to PyPI by GitHub Actions (`.github/workflows/release.yml`) on version tags, using trusted publishing. A daily workflow checks for new sqlc releases and opens a bump PR.
