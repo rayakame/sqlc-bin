@@ -1,0 +1,30 @@
+name: Check for new sqlc release
+
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+      - name: Update version and checksums
+        run: uv run --no-project scripts/bump_sqlc.py
+      - uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7.0.11
+        with:
+          commit-message: Bump sqlc to the latest release
+          title: Bump sqlc to the latest release
+          body: >
+            Automated bump created by `.github/workflows/bump.yml` using
+            `scripts/bump_sqlc.py`. Review the checksum changes, merge, then
+            tag `v<version>` to publish.
+          branch: bump-sqlc
+          delete-branch: true

@@ -1,0 +1,89 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+      - name: Verify tag matches project version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          version="$(uv run --no-project python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')"
+          if [ "$GITHUB_REF_NAME" != "v$version" ]; then
+            echo "tag $GITHUB_REF_NAME does not match project version v$version" >&2
+            exit 1
+          fi
+      - name: Build sdist
+        run: uv build --sdist
+      - name: Build a wheel per platform
+        run: |
+          for target in linux_amd64 linux_arm64 darwin_amd64 darwin_arm64 windows_amd64 windows_arm64; do
+            SQLC_BIN_TARGET="$target" uv build --wheel
+          done
+          ls -l dist/
+      - name: Verify the sdist builds a working wheel
+        run: |
+          uv venv
+          uv pip install dist/sqlc_bin-*.tar.gz
+          uv run --no-project sqlc version
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: dist
+          path: dist/
+
+  smoke-test:
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest      # linux amd64
+          - ubuntu-24.04-arm   # linux arm64
+          - macos-15-intel     # darwin amd64
+          - macos-latest       # darwin arm64
+          - windows-latest     # windows amd64
+          - windows-11-arm     # windows arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: dist
+          path: dist
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+      - name: Install the platform wheel and test it
+        shell: bash
+        run: |
+          uv venv
+          uv pip install --no-index --find-links dist sqlc-bin
+          uv pip install pytest
+          uv run --no-project sqlc version
+          uv run --no-project pytest -v
+
+  publish:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: smoke-test
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/sqlc-bin
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: dist
+          path: dist
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+      - name: Publish to PyPI (trusted publishing)
+        run: uv publish

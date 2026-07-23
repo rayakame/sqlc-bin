@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest      # linux amd64
+          - ubuntu-24.04-arm   # linux arm64
+          - macos-15-intel     # darwin amd64
+          - macos-latest       # darwin arm64
+          - windows-latest     # windows amd64
+          - windows-11-arm     # windows arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+      - name: Build wheel for the host platform
+        run: uv build --wheel
+      - name: Install wheel and smoke test
+        shell: bash
+        run: |
+          uv venv
+          uv pip install dist/*.whl pytest
+          uv run --no-project sqlc version
+          uv run --no-project python -m sqlc_bin version
+          uv run --no-project pytest -v
