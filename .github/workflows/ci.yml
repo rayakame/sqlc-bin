@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Build wheel for the host platform
+        run: uv build --wheel
+      - name: Install wheel and smoke test
+        shell: bash
+        run: |
+          uv venv
+          uv pip install dist/*.whl pytest
+          uv run --no-project sqlc version
+          uv run --no-project python -m sqlc_bin version
+          uv run --no-project pytest -v
