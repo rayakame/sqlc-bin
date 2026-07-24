@@ -18,6 +18,11 @@ jobs:
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
       - name: Update version and checksums
         run: uv run --no-project scripts/bump_sqlc.py
+      - name: Refresh uv.lock
+        run: |
+          if ! git diff --quiet pyproject.toml; then
+            uv lock
+          fi
       - uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7.0.11
         with:
           commit-message: Bump sqlc to the latest release
