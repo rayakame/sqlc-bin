@@ -1,0 +1,17 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": ["config:recommended", "helpers:pinGitHubActionDigestsToSemver"],
+    "lockFileMaintenance": {
+        "enabled": true,
+        "automerge": true
+    },
+    "prHourlyLimit": 5,
+    "packageRules": [
+        {
+            "description": "Automerge safe GitHub Actions updates once required checks pass",
+            "matchManagers": ["github-actions"],
+            "matchUpdateTypes": ["minor", "patch", "pin", "pinDigest", "digest"],
+            "automerge": true
+        }
+    ]
+}
