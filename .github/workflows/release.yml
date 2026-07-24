@@ -87,3 +87,42 @@ jobs:
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
       - name: Publish to PyPI (trusted publishing)
         run: uv publish
+
+  github-release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Create GitHub release
+        run: |
+          if gh release view "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "release $GITHUB_REF_NAME already exists"
+            exit 0
+          fi
+          version="${GITHUB_REF_NAME#v}"
+          sqlc_version="${version%%.post*}"
+          cat > notes.md <<'EOF'
+          Ships sqlc **vSQLC_VERSION** ([upstream release notes](https://github.com/sqlc-dev/sqlc/releases/tag/vSQLC_VERSION)), repackaged unmodified into platform-tagged wheels and verified against pinned sha256 checksums.
+
+          ## Install
+
+          ```sh
+          uv tool install sqlc-bin   # or: uv add --dev sqlc-bin
+          pip install sqlc-bin
+          ```
+
+          ## Platforms
+
+          Linux (glibc + musl), macOS 11+, and Windows — x86_64 and arm64 each.
+
+          📦 [sqlc-bin PKG_VERSION on PyPI](https://pypi.org/project/sqlc-bin/PKG_VERSION/)
+          EOF
+          sed -i "s/SQLC_VERSION/${sqlc_version}/g; s/PKG_VERSION/${version}/g" notes.md
+          gh release create "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" \
+            --verify-tag \
+            --title "$GITHUB_REF_NAME" \
+            --notes-file notes.md
