@@ -122,7 +122,7 @@ wheels = [
 
 [[package]]
 name = "sqlc-bin"
-version = "1.31.1"
+version = "1.31.1.post1"
 source = { editable = "." }
 
 [package.dev-dependencies]
