@@ -5,11 +5,11 @@ build-backend = "hatchling.build"
 [project]
 name = "sqlc-bin"
 # Tracks the sqlc release version. Use a ".postN" suffix for packaging-only fixes.
-version = "1.31.1"
-description = "The official sqlc binaries, pip-installable — no Go toolchain required"
+version = "1.31.1.post1"
+description = "Unofficial pip packaging of sqlc, ships the unmodified upstream release binaries, no Go toolchain required. Not affiliated with the sqlc project."
 readme = "README.md"
 license = "MIT"
-license-files = ["LICENSE"]
+license-files = ["LICENSE", "LICENSE-sqlc"]
 requires-python = ">=3.9"
 authors = [{ name = "Christopher" }]
 keywords = ["sqlc", "sql", "codegen", "database", "cli"]
@@ -26,6 +26,7 @@ classifiers = [
 
 [project.urls]
 Repository = "https://github.com/rayakame/sqlc-bin"
+Issues = "https://github.com/rayakame/sqlc-bin/issues"
 "sqlc upstream" = "https://github.com/sqlc-dev/sqlc"
 "sqlc documentation" = "https://docs.sqlc.dev"
 

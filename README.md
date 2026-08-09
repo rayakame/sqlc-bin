@@ -56,3 +56,13 @@ Each platform gets its own wheel with the matching binary inside; pip/uv picks t
 - Wheels bundle the unmodified binaries from [sqlc's GitHub releases](https://github.com/sqlc-dev/sqlc/releases). Nothing is rebuilt, patched, or recompiled.
 - Every downloaded archive is verified against sha256 checksums pinned in [`checksums.json`](checksums.json) before packaging.
 - The `sqlc` entry point `exec`s the bundled binary
+
+## License
+
+The packaging code in this repository is MIT-licensed ([`LICENSE`](LICENSE)).
+
+sqlc itself is a separate project by its own authors, licensed under the MIT
+license — see [`LICENSE-sqlc`](LICENSE-sqlc) (Copyright (c) Riza, Inc.), which
+covers the bundled binaries and is shipped inside every wheel. "sqlc" is the
+name of the upstream project; this package is not affiliated with, endorsed
+by, or sponsored by the sqlc authors.
