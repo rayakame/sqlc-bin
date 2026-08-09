@@ -51,11 +51,27 @@ See the [sqlc documentation](https://docs.sqlc.dev) for everything the CLI can d
 
 Each platform gets its own wheel with the matching binary inside; pip/uv picks the right one automatically. On any other platform, installation falls back to the sdist, which downloads the binary for the host at build time (and fails clearly if sqlc doesn't publish one).
 
+## Versioning
+
+The package version tracks the sqlc version: `sqlc-bin==1.31.1` ships sqlc `v1.31.1`. Packaging-only fixes are published as post-releases (`1.31.1.post1`) containing the same binary.
+
 ## How it works
 
 - Wheels bundle the unmodified binaries from [sqlc's GitHub releases](https://github.com/sqlc-dev/sqlc/releases). Nothing is rebuilt, patched, or recompiled.
 - Every downloaded archive is verified against sha256 checksums pinned in [`checksums.json`](checksums.json) before packaging.
 - The `sqlc` entry point `exec`s the bundled binary
+
+## Development
+
+```sh
+uv sync                                          # set up the dev environment
+uv build --wheel                                 # build a wheel for your platform
+SQLC_BIN_TARGET=windows_arm64 uv build --wheel   # cross-build for another target
+uv run --with dist/*.whl pytest                  # tests run against an installed wheel
+uv run --no-project scripts/bump_sqlc.py         # update to the latest sqlc release
+```
+
+Releases are built and published to PyPI by GitHub Actions (`.github/workflows/release.yml`) on version tags, using trusted publishing. A daily workflow checks for new sqlc releases and opens a bump PR.
 
 ## License
 
